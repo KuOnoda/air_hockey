@@ -1,3 +1,7 @@
+import numpy as np
+
+from air_hockey_challenge.framework import AgentBase
+
 def build_agent(env_info, **kwargs):
     """
     Function where an Agent that controls the environments should be returned.
@@ -7,7 +11,27 @@ def build_agent(env_info, **kwargs):
         env_info (dict): The environment information
         kwargs (any): Additionally setting from agent_config.yml
     Returns:
-         (AgentBase) An instance of the Agent
+        (AgentBase) An instance of the Agent
     """
 
-    raise NotImplementedError
+    return DummyAgent(env_info, **kwargs)
+
+
+class DummyAgent(AgentBase):
+    def __init__(self, env_info, **kwargs):
+        super().__init__(env_info, **kwargs)
+        self.new_start = True
+        self.hold_position = None
+
+    def reset(self): #エピソードごとの初めに呼ばれる
+        self.new_start = True
+        self.hold_position = None
+
+    def draw_action(self, observation): #エージェントの行動を決定する shape [2, joint_num] Desired position, Dsired velocity
+        if self.new_start:
+            self.new_start = False
+            self.hold_position = self.get_joint_pos(observation)
+
+        velocity = np.zeros_like(self.hold_position)
+        action = np.vstack([self.hold_position, velocity])
+        return action
