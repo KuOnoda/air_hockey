@@ -1,6 +1,6 @@
 import ray
 from ray import tune
-from ray.rllib.agents.ppo import PPOTrainer
+from ray.rllib.algorithm.ppo import PPOConfig
 from ray.rllib.env import ExternalEnv
 from air_hockey_challenge.framework.air_hockey_challenge_wrapper import AirHockeyChallengeWrapper
 
@@ -26,7 +26,7 @@ tune.register_env("AirHockeyEnv", lambda config: AirHockeyEnv(config))
 # PPOエージェントの設定
 config = {
     "env": "AirHockeyEnv",
-    "num_workers": 2,  # 並列ワーカー数
+    "num_workers": 1,  # 並列ワーカー数
     "framework": "torch",  # PyTorchで実装
     "train_batch_size": 4000,
     "sgd_minibatch_size": 128,

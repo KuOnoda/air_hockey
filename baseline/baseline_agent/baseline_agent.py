@@ -1,6 +1,11 @@
 from air_hockey_challenge.framework.agent_base import AgentBase
 from baseline.baseline_agent.tactics import *
+import gym
+import gymnasium
+from gymnasium import spaces
+from stable_baselines3.common.env_checker import check_env
 
+from air_hockey_challenge.framework.air_hockey_challenge_wrapper import AirHockeyChallengeWrapper
 
 def build_agent(env_info, **kwargs):
     """
@@ -79,22 +84,22 @@ class BaselineAgent(AgentBase):
                 # print("iterate")
                 pass
 
+        
+
         self.state.q_cmd, self.state.dq_cmd = self.state.trajectory_buffer[0]
         self.state.trajectory_buffer = self.state.trajectory_buffer[1:]
 
         self.state.x_cmd, self.state.v_cmd = self.state.update_ee_pos_vel(self.state.q_cmd, self.state.dq_cmd)
         return np.vstack([self.state.q_cmd, self.state.dq_cmd])
 
-
 def main():
     import time
     import numpy as np
 
-    from air_hockey_challenge.framework.air_hockey_challenge_wrapper import AirHockeyChallengeWrapper
-    # from air_hockey_challenge.framework.agent_base import DoubleAgentsWrapper
     np.random.seed(0)
 
-    env = AirHockeyChallengeWrapper(env="7dof-hit", interpolation_order=3, debug=True)
+    env = AirHockeyChallengeWrapper(env="7dof-hit")
+    print(env.action_space)
 
     agent1 = BaselineAgent(env.env_info, agent_id=1)
     # agent2 = BaselineAgent(env.env_info, agent_id=2)
@@ -110,6 +115,7 @@ def main():
         steps += 1
         t_start = time.time()
         action = agents.draw_action(obs)
+        print(action.shape)
         # print("time: ", time.time() - t_start)
         obs, reward, done, info = env.step(action)
 
@@ -134,6 +140,7 @@ def main():
 
             steps = 0
             obs = env.reset()
+            print(obs.shape)
             agents.episode_start()
             print("Reset")
 

@@ -5,6 +5,8 @@ from air_hockey_challenge.environments import position_control_wrapper as positi
 from air_hockey_challenge.utils import robot_to_world
 from mushroom_rl.core import Environment
 
+from gym import spaces
+
 
 class AirHockeyChallengeWrapper(Environment):
     def __init__(self, env, custom_reward_function=None, interpolation_order=3, **kwargs):
@@ -40,6 +42,9 @@ class AirHockeyChallengeWrapper(Environment):
         self.base_env = env_dict[env](interpolation_order=interpolation_order, **kwargs)
         self.env_name = env
         self.env_info = self.base_env.env_info
+
+        self.observation_space = spaces.Box(low=-1, high=1, shape=(23,), dtype=np.float32)
+        self.action_space = spaces.Box(low=-1, high=1, shape=(2,), dtype=np.float32)
 
         if custom_reward_function:
             self.base_env.reward = lambda state, action, next_state, absorbing: custom_reward_function(self.base_env,
@@ -122,6 +127,11 @@ if __name__ == "__main__":
     while True:
         action = np.random.uniform(-1, 1, (2, env.env_info['robot']['n_joints'])) * 3
         observation, reward, done, info = env.step(action)
+        print(env.env_info['joint_pos_ids'])
+        
+        print(action.shape) # (2,7)
+        print(observation.shape) # (23,)
+        
         env.render()
         gamma *= env.info.gamma
         J += gamma * reward
