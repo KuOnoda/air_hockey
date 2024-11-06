@@ -76,10 +76,11 @@ policy_optimizer = {'class': optim.Adam, 'params': {'lr': 3e-4}}
 policy = GaussianTorchPolicy(policy_network, input_shape, output_shape)\
 
 critic_params = dict(network=PPOPolicyNetwork,
-                             optimizer={'class': optim.Adam,
-                                        'params': {'lr': 3e-4}},
-                             input_shape=input_shape,
-                             output_shape=(1,))
+                    optimizer={'class': optim.Adam,
+                                'params': {'lr': 3e-4}},
+                    loss=nn.MSELoss(),
+                    input_shape=input_shape,
+                    output_shape=(1,))
 
 
 class PPO_Agent(PPO):
@@ -102,10 +103,12 @@ class PPO_Agent(PPO):
 
         if self.next_action is None:
             action = self.policy.draw_action(obs)
+            return action
             return self.process_raw_act(action)
         else:
             action = self.next_action
-            self.next_action = None    
+            self.next_action = None   
+            return action 
             return self.process_raw_act(action)
 
     def process_raw_obs(self, obs: np.ndarray) -> np.ndarray:
@@ -198,24 +201,23 @@ agent = PPO_Agent(
     ent_coeff=0.0,
 )
 
-# # 学習ループ
-n_episodes = 1000
+core = Core(agent, env)
+n_episodes = 5000
+
 for episode in range(n_episodes):
-    obs = env.reset()
-    done = False
-    while not done:
-        #print(obs)
+    core.learn(n_episodes=100, n_steps_per_fit=100, render=False)
+    dataset = core.evaluate(n_episodes=100,)
+    J = compute_J(dataset, gamma=0.9)
+    print(f'Episode {episode + 1}: Return = {np.mean(J)}')
+
+
+# 可視化
+obs = env.reset()
+done = False
+
+while not done:
         action = agent.draw_action(obs)
         next_obs, reward, done, _ = env.step(action)
         obs = next_obs
-        env.render()
-
-core = Core(agent, env)
-n_episodes = 10000
-
-for episode in range(n_episodes):
-    core.learn(n_episodes=1, n_steps_per_fit=100)
-    dataset = core.evaluate(n_episodes=5,)
-    J = compute_J(dataset, gamma=0.99)
-    print(f'Episode {episode + 1}: Return = {np.mean(J)}')
+        env.render()  # 環境をレンダリング
 

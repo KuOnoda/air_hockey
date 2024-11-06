@@ -3,7 +3,6 @@ from baseline.baseline_agent.tactics import *
 import gym
 import gymnasium
 from gymnasium import spaces
-from stable_baselines3.common.env_checker import check_env
 
 from air_hockey_challenge.framework.air_hockey_challenge_wrapper import AirHockeyChallengeWrapper
 
